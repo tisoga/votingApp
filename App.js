@@ -7,11 +7,10 @@
  */
 
 import React from 'react';
-
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import NavigationService from './NavigationService'
-import { Home, Voting, Result, TambahPertanyaan, TambahPilihan } from './components/screens'
+import { Home, Voting, Result, TambahPertanyaan, TambahPilihan, Login } from './components/screens'
 
 let rootstack = createStackNavigator(
     {
@@ -24,14 +23,21 @@ let rootstack = createStackNavigator(
             }
         },
         TambahPertanyaan: TambahPertanyaan,
-        TambahPilihan : TambahPilihan,
+        TambahPilihan: TambahPilihan,
+        Login: {
+            screen: Login,
+            navigationOptions: {
+                headerShown: false
+            }
+        },
     },
     {
-        initialRouteName: 'Home'
+        initialRouteName: 'Login'
     }
 )
 
 let Navigation = createAppContainer(rootstack)
+
 
 class App extends React.Component {
     render() {

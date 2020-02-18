@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import axios from 'axios'
+import { TextInput } from 'react-native-gesture-handler';
 
 const Home = ({ navigation }) => {
     const url = 'http://147.139.164.109:8080/api/data_vote/'
