@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
     StyleSheet,
     View,
@@ -6,7 +6,6 @@ import {
     Button,
     TouchableOpacity,
     ImageBackground,
-    Image,
     Modal,
     TextInput,
     Alert,
@@ -14,15 +13,49 @@ import {
 } from 'react-native';
 
 import authLogin from '../actions/authLogin'
-import AsyncStorage from '@react-native-community/async-storage'
-const Login = () => {
+import authRegister from '../actions/registerAuth'
+import { useAsyncStorage } from '@react-native-community/async-storage'
+import axios from 'axios'
+
+const Login = ({ navigation }) => {
     const [modal, setModal] = useState({ 'login': false, 'register': false })
     const [user, setUser] = useState('')
     const [pass, setPass] = useState('')
+    const { getItem, setItem } = useAsyncStorage('@auth');
+    const [account, setAccount] = useState({
+        username: '',
+        email: '',
+        pass1: '',
+        pass2: ''
+    })
+
+    useEffect(() => {
+        const getData = async () => {
+            const auth = JSON.parse(await getItem())
+            const url = 'http://147.139.164.109:8080/api/auth/user'
+            const headers = {
+                'Authorization': 'Token ' + auth.token,
+            }
+            await axios.get(url, { headers, 'Cache-Control': 'no-cache' }).then(response => navigation.navigate('Home'))
+                .catch(
+                    function (error) {
+                        console.log('Token Invalid/ No Connection')
+                    }
+                )
+        }
+        getData()
+    })
+
 
     const resetValue = () => {
         setUser('')
         setPass('')
+        setAccount({
+            username: '',
+            email: '',
+            pass1: '',
+            pass2: ''
+        })
     }
 
     const modalOpenClose = (value) => {
@@ -54,7 +87,23 @@ const Login = () => {
             Alert.alert('Kesalahan!', 'Silahkan isi Username dan Password terlebih dahulu')
         }
     }
-
+    const registerAuth = async () => {
+        if(!account.email){
+            Alert.alert('Terjadi Kesalahan', 'Silahkan Isi Email')
+        }
+        else if (account.pass1 != account.pass2){
+            Alert.alert('Terjadi Kesalahan', 'Password Tidak Cocok')
+        }
+        else{
+            authRegister({
+                "username": account.username,
+                "password": account.pass1,
+                "email": account.email
+            })
+            modalOpenClose('close')
+        }
+    }
+    
     return (
         <>
             <ImageBackground
@@ -148,40 +197,27 @@ const Login = () => {
                         <TextInput
                             style={styles.textInput}
                             placeholder='Masukan Username'
-                            onChangeText={(value) => account.username = value}
+                            value={account.username}
+                            onChangeText={(value) => setAccount({ ...account, username: value })}
                         />
-                        <Text>Nama Lengkap</Text>
+                        <Text>Email</Text>
                         <TextInput
                             style={styles.textInput}
-                            placeholder='Masukan Nama Lengkap'
-                            onChangeText={(value) => account.nama = value}
-                        />
-                        <Text>NIM</Text>
-                        <TextInput
-                            style={styles.textInput}
-                            placeholder='Masukan NIM'
-                            onChangeText={(value) => account.nim = value}
-                            keyboardType='number-pad'
-                        />
-                        <Text>No Telepon</Text>
-                        <TextInput
-                            style={styles.textInput}
-                            placeholder='Masukan No Telepon'
-                            onChangeText={(value) => account.telp = value}
-                            keyboardType='number-pad'
+                            placeholder='Masukan Email'
+                            onChangeText={(value) => setAccount({ ...account, email: value })}
                         />
                         <Text>Password</Text>
                         <TextInput
                             style={styles.textInput}
                             placeholder='Masukan Password'
-                            onChangeText={(value) => account.pass = value}
+                            onChangeText={(value) => setAccount({ ...account, pass1: value })}
                             secureTextEntry={true}
                         />
                         <Text>Confirm Password</Text>
                         <TextInput
                             style={styles.textInput}
                             placeholder='Masukan Ulang Password'
-                            onChangeText={(value) => account.pass2 = value}
+                            onChangeText={(value) => setAccount({ ...account, pass2: value })}
                             secureTextEntry={true}
                         />
                     </KeyboardAvoidingView>
@@ -189,6 +225,7 @@ const Login = () => {
                         <TouchableOpacity>
                             <Button
                                 title="Register"
+                                onPress={() => registerAuth()}
                             />
                         </TouchableOpacity>
                     </View>

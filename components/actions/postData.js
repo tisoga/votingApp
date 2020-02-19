@@ -2,8 +2,13 @@ import axios from 'axios'
 import qs from 'qs'
 import { useState } from 'react';
 import NavigationService from '../../NavigationService'
+import AsyncStorage from '@react-native-community/async-storage'
 
-const postData = async (data, url, status, ...lainnya) => {    
+const postData = async (data, url, status, ...lainnya) => {
+    const auth = JSON.parse(await AsyncStorage.getItem('@auth'))
+    const headers = {
+        'Authorization': 'Token ' + auth.token,
+    }
     const destination = (res) => {
         switch (status) {
             case 'Vote':
@@ -37,15 +42,15 @@ const postData = async (data, url, status, ...lainnya) => {
                 break;
         }
     }
-    await axios.post(url,
-        qs.stringify(data)).then(res => destination(res))
+    await axios.post(url, 
+        qs.stringify(data), {"headers": headers}).then(res => destination(res))
         .catch(
             function (error) {
                 if (error.response) {
                     // Request made and server responded
-                    // console.log(error.response.data);
-                    // console.log(error.response.status);
-                    // console.log(error.response.headers);
+                    console.log(error.response.data);
+                    console.log(error.response.status);
+                    console.log(error.response.headers);
                     NavigationService.navigate(
                         'Result',
                         {

@@ -3,13 +3,13 @@ import {
     StyleSheet,
     View,
     Text,
-    Button,
     FlatList,
-    TouchableOpacity
+    TouchableOpacity,
+    Alert
 } from 'react-native';
 
 import axios from 'axios'
-import { TextInput } from 'react-native-gesture-handler';
+import AsyncStorage from '@react-native-community/async-storage'
 
 const Home = ({ navigation }) => {
     const url = 'http://147.139.164.109:8080/api/data_vote/'
@@ -20,8 +20,33 @@ const Home = ({ navigation }) => {
 
     useEffect(() => {
         const data = async () => {
-            const response = await axios.get(url, { 'Cache-Control': 'no-cache' });
-            setListData(response.data)
+            const auth = JSON.parse(await AsyncStorage.getItem('@auth'))
+            const headers = {
+                'Authorization': 'Token '+auth.token,
+            }
+
+            await axios.get(url, { headers, 'Cache-Control': 'no-cache' }).then(response => setListData(response.data))
+                .catch(
+                    function (error) {
+                        if (error.response) {
+                            // Request made and server responded
+                            if (error.response.status == '401') {
+                                Alert.alert('Terjadi Kesalahan', 'Silahkan Login Terlebih Dahulu',
+                                    [
+                                        { text: 'OK', onPress: () => navigation.navigate('Login') }
+                                    ],
+                                    { cancelable: false }
+                                )
+                            }
+                        } else if (error.request) {
+                            // The request was made but no response was received
+                            Alert.alert('Terjadi Kesalahan', 'Periksa Koneksi Internet anda, atau coba beberapa saat lagi!')
+                        } else {
+                            // Something happened in setting up the request that triggered an Error
+                            Alert.alert('Error', error.message);
+                        }
+                    }
+                )
         }
         data()
 

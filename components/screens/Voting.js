@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native'
 import { fetchData, postData, deleteData } from '../actions'
 import axios from 'axios'
-// import { TouchableOpacity } from 'react-native-gesture-handler'
+import AsyncStorage from '@react-native-community/async-storage'
 
 const Voting = ({ navigation }) => {
     const id_pertanyaan = navigation.getParam('id_pertanyaan');
@@ -13,8 +13,33 @@ const Voting = ({ navigation }) => {
 
     useEffect(() => {
         const data = async () => {
-            const response = await axios.get(url, { 'Cache-Control': 'no-cache' });
-            setListData(response.data)
+            const auth = JSON.parse(await AsyncStorage.getItem('@auth'))
+            const headers = {
+                'Authorization': 'Token '+auth.token,
+            }
+
+            await axios.get(url, { headers, 'Cache-Control': 'no-cache' }).then(response => setListData(response.data))
+                .catch(
+                    function (error) {
+                        if (error.response) {
+                            // Request made and server responded
+                            if (error.response.status == '401') {
+                                Alert.alert('Terjadi Kesalahan', 'Silahkan Login Terlebih Dahulu',
+                                    [
+                                        { text: 'OK', onPress: () => navigation.navigate('Login') }
+                                    ],
+                                    { cancelable: false }
+                                )
+                            }
+                        } else if (error.request) {
+                            // The request was made but no response was received
+                            Alert.alert('Terjadi Kesalahan', 'Periksa Koneksi Internet anda, atau coba beberapa saat lagi!')
+                        } else {
+                            // Something happened in setting up the request that triggered an Error
+                            Alert.alert('Error', error.message);
+                        }
+                    }
+                )
         }
         data()
 

@@ -1,18 +1,18 @@
 import { Alert } from 'react-native'
 import axios from 'axios'
-import qs from 'qs'
 import AsyncStorage from '@react-native-community/async-storage'
+import qs from 'qs'
 import NavigationService from '../../NavigationService'
-
-const authLogin = async (data) => {
-    const url = "http://147.139.164.109:8080/api/auth/login/"
+const registerAuth = async (data) => {
+    const url = 'http://147.139.164.109:8080/api/auth/register/'
     const success = async (result) => {
+        console.log(result)
         try {
             await AsyncStorage.setItem('@auth', JSON.stringify(result))
-            Alert.alert('Login Success', 'Login Success')
+            Alert.alert('Register Success', 'Register Success')
             NavigationService.navigate('Home')
         } catch (e) {
-            Alert.alert('Terjadi Kesalahan', 'Pesan Error'+e)
+            Alert.alert('Terjadi Kesalahan', 'Pesan Error' + e)
         }
     }
 
@@ -23,10 +23,11 @@ const authLogin = async (data) => {
             function (error) {
                 if (error.response) {
                     // Request made and server responded
-                    // console.log(error.response.data);
-                    // console.log(error.response.status);
-                    // console.log(error.response.headers);
-                    Alert.alert('Login Gagal', 'Silahkan Periksa Username dan Password anda!')
+                    console.log(error.response.data);
+                    
+                    if (error.response.data.username){
+                        Alert.alert('Terjadi Kesalahan', 'Username sudah ada, silahkan coba yang lain')
+                    }
                 } else if (error.request) {
                     // The request was made but no response was received
                     // console.log(error.request);
@@ -38,5 +39,4 @@ const authLogin = async (data) => {
             });
 }
 
-
-export default authLogin
+export default registerAuth
